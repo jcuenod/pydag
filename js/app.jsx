@@ -20,7 +20,7 @@ var latinGreekMapExtra = {
 	"f": "ph", "j":"i",
 }
 var latinise = (text) =>
-	text.replace(new RegExp("[" + Object.keys(latinGreekMapExtra).join() + "]", "g"), (m) => latinGreekMapExtra[m])
+	text.replace(new RegExp(Object.keys(latinGreekMapExtra).join("|"), "g"), (m) => latinGreekMapExtra[m])
 
 
 function getSuggestions(value) {
