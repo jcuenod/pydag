@@ -9,37 +9,18 @@ var normalizePolytonicGreekToLowerCase = (text) => {
 	text = text.replace(/[ῤῥῬ]/g,'ρ');
 	return text.toLowerCase();
 }
+
 var latinGreekMapExtra = {
-	"α":"a",
-	"β":"b",
-	"γ":"g",
-	"δ":"d",
-	"ε":"e",
-	"ζ":"z",
-	"η":"e",
-	"θ":"th",
-	"ι":"i",
-	"κ":"k",
-	"λ":"l",
-	"μ":"m",
-	"ν":"n",
-	"ξ":"x",
-	"ο":"o",
-	"π":"p",
-	"ρ":"r",
-	"σ":"s",
-	"ς":"s",
-	"τ":"t",
-	"υ":"u",
-	"φ":"ph",
-	"χ":"ch",
-	"ψ":"ps",
+	"α":"a", "β":"b", "γ":"g", "δ":"d", "ε":"e", "ζ":"z",
+	"η":"e", "θ":"th", "ι":"i", "κ":"k", "λ":"l", "μ":"m",
+	"ν":"n", "ξ":"x", "ο":"o", "π":"p", "ρ":"r", "σ":"s",
+	"ς":"s", "τ":"t", "υ":"u", "φ":"ph", "χ":"ch", "ψ":"ps",
 	"ω":"o",
 	//extra
-	"f": "ph",
-	"j":"i",
+	"f": "ph", "j":"i",
 }
-var latinise = (text) => text.replace(new RegExp("[" + Object.keys(latinGreekMapExtra).join() + "]", "g"), (m) => latinGreekMapExtra[m])
+var latinise = (text) =>
+	text.replace(new RegExp("[" + Object.keys(latinGreekMapExtra).join() + "]", "g"), (m) => latinGreekMapExtra[m])
 
 
 function getSuggestions(value) {
@@ -80,6 +61,16 @@ var App = React.createClass({
 			"noSuggestions": false
 		};
 	},
+	componentDidMount() {
+		var giveFocus = () => {
+			if (this.autosuggest_ref.input !== document.activeElement)
+			{
+				this.onAutosuggestChange(null, {"newValue": "", "method": null})
+				this.autosuggest_ref.input.focus()
+			}
+		}
+		window.addEventListener('keydown', giveFocus)
+	},
 	handleChangeText(event) {
 		this.setState({"filter": event.target.value});
 		this.setState({"selected": null});
@@ -93,13 +84,13 @@ var App = React.createClass({
 		var lx = this.state.lexeme_data
 		var that_filter = latinise( normalizePolytonicGreekToLowerCase(value) )
 		var filtered_data = (that_filter === "") ? [] : lx.filter((x) => {
-			return x["normalised_word"].search(new RegExp("^" + that_filter, "i")) !== -1;
-		});
-		const suggestions = filtered_data.slice(0, 10);
-		const isInputBlank = value.trim() === '';
-		const noSuggestions = !isInputBlank && suggestions.length === 0;
+			return x["normalised_word"].search(new RegExp("^" + that_filter, "i")) !== -1
+		})
+		const suggestions = filtered_data.slice(0, 10)
+		const isInputBlank = value.trim() === ''
+		const noSuggestions = !isInputBlank && suggestions.length === 0
 
-		this.setState({ suggestions, noSuggestions });
+		this.setState({ suggestions, noSuggestions })
 	},
 	onSuggestionsClearRequested(){
 		this.setState({
@@ -108,33 +99,14 @@ var App = React.createClass({
 	},
 	storeInputReference(autosuggest){
 		if (autosuggest !== null) {
-			this.setState({"selected": autosuggest.input});
+			this.setState({"selected": autosuggest.input})
+			if (this.autosuggest_ref == null) {
+				this.autosuggest_ref = autosuggest
+			}
 		}
 	},
 	render: function() {
-		// var filtered_data = [];
-		// var that_pos_filter = this.state.pos_filter;
-		// var lx = this.state.lexeme_data
-		// var that_filter = normalizePolytonicGreekToLowerCase(this.state.filter);
-		// filtered_data = (this.state.filter === "") ? [] : lx.filter(function(x){
-		// 	return x["normalised_word"].search(new RegExp("^" + that_filter, "i")) !== -1;
-		// });
-		// var top_results = filtered_data.slice(0, 5);
-
-		// var table_of_lexemes = (
-		// 	<table className="pure-table">
-		// 		<thead><tr>
-		// 			<td>Lexemes</td>
-		// 		</tr></thead>
-		// 		<tbody>
-		// 			{top_results.map((data, i) => (
-		// 				<tr><td onClick={() => this.setState({"selected": data})}>{data.word}</td></tr>
-		// 			))}
-		// 		</tbody>
-		// 	</table>
-		// )
-		var definition_to_display = (<div></div>)
-		// if (top_results.length === 1 || this.state.selected)
+		var definition_to_display = <div />
 		if (this.state.selected)
 		{
 			var definition_text = this.state.selected ? this.state.selected.definition : ""
@@ -142,16 +114,12 @@ var App = React.createClass({
 		}
 
 		const inputProps = {
-			"placeholder": "Type in unicode Greek",
+			"placeholder": "Unicode Greek/Transliteration",
 			"value": this.state.value,
 			"onChange": this.onAutosuggestChange
-		};
-
-	// 	<!--<form className="pure-form">
-	// 	<input type="text" onChange={this.handleChangeText} />
-	// </form>-->
+		}
 		return (
-			<div>
+			<div onKeyDown={this.props.handleKeyDown}>
 				<h1>BDAG Lookup</h1>
 				<Autosuggest
 					suggestions={this.state.suggestions}
@@ -164,7 +132,7 @@ var App = React.createClass({
 
 				{definition_to_display}
 			</div>
-		);
+		)
 	}
 });
 
