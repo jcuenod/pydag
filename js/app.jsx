@@ -46,7 +46,8 @@ var App = React.createClass({
 		this.serverRequest = $.getJSON("data/bdag.json", function (result) {
 			var definition_data = result.map((word_data) => {
 				var ret = Object.assign(word_data)
-				ret["normalised_word"] = latinise( normalizePolytonicGreekToLowerCase(word_data.word) )
+				ret["normalised_word"] = normalizePolytonicGreekToLowerCase(word_data.word)
+				ret["latinised_word"] = latinise(ret["normalised_word"])
 				return ret
 			})
 			this.setState({"lexeme_data": definition_data});
@@ -82,9 +83,12 @@ var App = React.createClass({
 	},
 	onSuggestionsFetchRequested({value}){
 		var lx = this.state.lexeme_data
-		var that_filter = latinise( normalizePolytonicGreekToLowerCase(value) )
-		var filtered_data = (that_filter === "") ? [] : lx.filter((x) => {
-			return x["normalised_word"].search(new RegExp("^" + that_filter, "i")) !== -1
+		var normalised_filter = normalizePolytonicGreekToLowerCase(value)
+		var latin_filter = latinise(normalised_filter)
+		var filtered_data = (latin_filter === "") ? [] : lx.filter((x) => {
+			var normalised_match = x["normalised_word"].search(new RegExp("^" + normalised_filter, "i")) !== -1
+			var latin_match = x["latinised_word"].search(new RegExp("^" + latin_filter, "i")) !== -1
+			return normalised_match || latin_match
 		})
 		const suggestions = filtered_data.slice(0, 10)
 		const isInputBlank = value.trim() === ''
